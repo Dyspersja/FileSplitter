@@ -1,5 +1,7 @@
 package com.dyspersja;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 public class ChunkFilesManager {
@@ -35,6 +37,47 @@ public class ChunkFilesManager {
                     .replace("-","");
         }
         return chunkFileNames;
+    }
+
+    public byte[][] generateChunkFileHeaders(
+            String[] chunkFileNames,
+            String sourceFileName,
+            String sourceFileExtension
+    ) {
+        byte[] sourceFileNameBytes = sourceFileName.getBytes(StandardCharsets.UTF_8);
+        if (sourceFileNameBytes.length > FILE_NAME_SIZE) throw new IllegalArgumentException("Filename is to long");
+
+        byte[] sourceFileExtensionBytes = sourceFileExtension.getBytes(StandardCharsets.UTF_8);
+        if (sourceFileExtensionBytes.length > FILE_EXTENSION_SIZE) throw new IllegalArgumentException("File extension is to long");
+
+        ByteBuffer[] fileBuffers = new ByteBuffer[chunkFileNames.length];
+        for (int i = 0; i < fileBuffers.length; i++) {
+            fileBuffers[i] = i == 0
+                    ? ByteBuffer.allocate(FIRST_CHUNK_HEADER)
+                    : ByteBuffer.allocate(CHUNK_HEADER);
+
+            byte[] nextChunkFileName = i != (fileBuffers.length - 1)
+                    ? hexStringToByteArray(chunkFileNames[i+1])
+                    : hexStringToByteArray(chunkFileNames[0]);
+
+            fileBuffers[i].put(nextChunkFileName);
+            fileBuffers[i].putInt(i+1);
+        }
+
+        fileBuffers[0].put(new byte[FILE_NAME_SIZE - sourceFileNameBytes.length]);
+        fileBuffers[0].put(sourceFileNameBytes);
+
+        fileBuffers[0].put(new byte[FILE_EXTENSION_SIZE - sourceFileExtensionBytes.length]);
+        fileBuffers[0].put(sourceFileExtensionBytes);
+
+        byte[][] chunkFileHeaders = new byte[fileBuffers.length][];
+        for (int i = 0; i < fileBuffers.length; i++) {
+            fileBuffers[i].flip();
+            chunkFileHeaders[i] = new byte[fileBuffers[i].remaining()];
+            fileBuffers[i].get(chunkFileHeaders[i]);
+        }
+
+        return chunkFileHeaders;
     }
 
     private byte[] hexStringToByteArray(String hexString) {
