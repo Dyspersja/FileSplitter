@@ -1,6 +1,11 @@
 package com.dyspersja;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
@@ -78,6 +83,31 @@ public class ChunkFilesManager {
         }
 
         return chunkFileHeaders;
+    }
+
+    public void createChunkFiles(
+            String[] chunkFileNames,
+            byte[][] chunkFileHeaders,
+            File sourceFile
+    ) {
+        try (FileInputStream fis = new FileInputStream(sourceFile);
+             FileChannel inputChannel = fis.getChannel()) {
+            for (int i = 0; i < chunkFileNames.length; i++) {
+
+                ByteBuffer fileBuffer = ByteBuffer.allocate((int) CHUNK_FILE_SIZE);
+
+                fileBuffer.put(chunkFileHeaders[i]);
+                inputChannel.read(fileBuffer);
+                fileBuffer.flip();
+
+                try (FileOutputStream fos = new FileOutputStream(chunkFileNames[i]);
+                     FileChannel outputChannel = fos.getChannel()) {
+                    outputChannel.write(fileBuffer);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Exception occurred while creating chunk files");
+        }
     }
 
     private byte[] hexStringToByteArray(String hexString) {

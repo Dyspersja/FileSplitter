@@ -17,5 +17,11 @@ public class Main {
                 sourceFileManager.retrieveFileName(sourceFile.getName()),
                 sourceFileManager.retrieveFileExtension(sourceFile.getName())
         );
+
+        chunkFilesManager.createChunkFiles(
+                chunkFileNames,
+                chunkFileHeaders,
+                sourceFile
+        );
     }
 }
