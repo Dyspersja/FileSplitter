@@ -52,7 +52,9 @@ public class ChunkFilesManager {
         byte[] sourceFileNameBytes = sourceFileName.getBytes(StandardCharsets.UTF_8);
         if (sourceFileNameBytes.length > FILE_NAME_SIZE) throw new IllegalArgumentException("Filename is to long");
 
-        byte[] sourceFileExtensionBytes = sourceFileExtension.getBytes(StandardCharsets.UTF_8);
+        byte[] sourceFileExtensionBytes = sourceFileExtension != null
+                ? sourceFileExtension.getBytes(StandardCharsets.UTF_8)
+                : new byte[0];
         if (sourceFileExtensionBytes.length > FILE_EXTENSION_SIZE) throw new IllegalArgumentException("File extension is to long");
 
         ByteBuffer[] fileBuffers = new ByteBuffer[chunkFileNames.length];
