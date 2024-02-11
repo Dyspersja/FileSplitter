@@ -36,4 +36,14 @@ public class ChunkFilesManager {
         }
         return chunkFileNames;
     }
+
+    private byte[] hexStringToByteArray(String hexString) {
+        byte[] byteArray = new byte[hexString.length() / 2];
+
+        for (int i = 0; i < hexString.length(); i += 2) {
+            byteArray[i / 2] = (byte) ((Character.digit(hexString.charAt(i), 16) << 4)
+                    + Character.digit(hexString.charAt(i+1), 16));
+        }
+        return byteArray;
+    }
 }
