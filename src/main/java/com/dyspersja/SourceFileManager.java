@@ -15,4 +15,20 @@ public class SourceFileManager {
         if (!file.exists()) throw new IllegalArgumentException("FilePath provided in command-line arguments is incorrect.");
         return file;
     }
+
+    public String retrieveFileName(String filename) {
+        int dotIndex = filename.lastIndexOf('.');
+        if (dotIndex > 0) {
+            return filename.substring(0, dotIndex);
+        }
+        return filename;
+    }
+
+    public String retrieveFileExtension(String filename) {
+        int dotIndex = filename.lastIndexOf('.');
+        if (dotIndex > 0) {
+            return filename.substring(dotIndex + 1);
+        }
+        return null;
+    }
 }
