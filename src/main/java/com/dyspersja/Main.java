@@ -5,6 +5,10 @@ import java.io.File;
 public class Main {
 
     public static void main(String[] args) {
+        splitSourceFile(args);
+    }
+
+    private static void splitSourceFile(String[] args) {
         SourceFileManager sourceFileManager = new SourceFileManager();
         String sourceFilePath = sourceFileManager.retrieveFilePath(args);
         File sourceFile = sourceFileManager.retrieveFileFromFilePath(sourceFilePath);
