@@ -4,8 +4,13 @@ import java.io.File;
 
 public class Main {
 
+    private static final ApplicationMode MODE = ApplicationMode.SPLIT;
+
     public static void main(String[] args) {
-        splitSourceFile(args);
+        switch (MODE) {
+            case SPLIT -> splitSourceFile(args);
+            case MERGE -> mergeChunkFiles(args);
+        }
     }
 
     private static void splitSourceFile(String[] args) {
@@ -27,5 +32,9 @@ public class Main {
                 chunkFileHeaders,
                 sourceFile
         );
+    }
+
+    private static void mergeChunkFiles(String[] args) {
+        throw new RuntimeException("Not Implemented");
     }
 }
