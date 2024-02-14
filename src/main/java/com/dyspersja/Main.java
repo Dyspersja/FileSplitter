@@ -51,6 +51,6 @@ public class Main {
             lastChunkFile = nextChunkFile;
         } while (!lastChunkFile.equals(chunkFileList.get(0)));
 
-        System.out.println(chunkFileList.size());
+        int chunkFileListOffset = chunkFilesManager.getChunkFileOrder(chunkFileList.get(0));
     }
 }

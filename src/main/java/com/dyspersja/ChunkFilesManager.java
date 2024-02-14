@@ -116,13 +116,33 @@ public class ChunkFilesManager {
         try (FileInputStream fis = new FileInputStream(chunkFile)) {
 
             byte[] nextChunkFileNameBytes = new byte[16];
-            int bytesRead = fis.read(nextChunkFileNameBytes, 0, 16);
+            int bytesRead = fis.read(nextChunkFileNameBytes);
+
+            if(bytesRead != 16) throw new RuntimeException("Couldn't read file " + chunkFile.getName());
 
             String nextChunkFileName = byteArrayToHexString(nextChunkFileNameBytes);
 
             return new File(chunkFile.getParentFile(), nextChunkFileName);
         } catch (IOException e) {
             throw new RuntimeException("Exception occurred while searching for chunk file " + chunkFile.getName());
+        }
+    }
+
+    public int getChunkFileOrder(File chunkFile) {
+        try (FileInputStream fis = new FileInputStream(chunkFile)) {
+
+            long bytesSkipped = fis.skip(16);
+
+            if(bytesSkipped != 16) throw new RuntimeException("Couldn't skip bytes in file " + chunkFile.getName());
+
+            byte[] orderBytes = new byte[4];
+            int bytesRead = fis.read(orderBytes);
+
+            if(bytesRead != 4) throw new RuntimeException("Couldn't read file " + chunkFile.getName());
+
+            return byteArrayToInt(orderBytes);
+        } catch (IOException e) {
+            throw new RuntimeException("Exception occurred while getting order for chunk file " + chunkFile.getName());
         }
     }
 
@@ -143,5 +163,12 @@ public class ChunkFilesManager {
             sb.append(String.format("%02x", b));
         }
         return sb.toString().trim();
+    }
+
+    private int byteArrayToInt(byte[] byteArray) {
+        return ((byteArray[0] & 0xFF) << 24) |
+                ((byteArray[1] & 0xFF) << 16) |
+                ((byteArray[2] & 0xFF) << 8) |
+                (byteArray[3] & 0xFF);
     }
 }
