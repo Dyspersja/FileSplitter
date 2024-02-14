@@ -146,6 +146,42 @@ public class ChunkFilesManager {
         }
     }
 
+    public String getFileNameFromChunkFile(File chunkFile) {
+        try (FileInputStream fis = new FileInputStream(chunkFile)) {
+
+            long bytesSkipped = fis.skip(CHUNK_HEADER);
+
+            if(bytesSkipped != CHUNK_HEADER) throw new RuntimeException("Couldn't skip bytes in file " + chunkFile.getName());
+
+            byte[] fileNameBytes = new byte[FILE_NAME_SIZE];
+            int bytesRead = fis.read(fileNameBytes);
+
+            if(bytesRead != FILE_NAME_SIZE) throw new RuntimeException("Couldn't read file " + chunkFile.getName());
+
+            return new String(fileNameBytes, StandardCharsets.UTF_8).trim();
+        } catch (IOException e) {
+            throw new RuntimeException("Exception occurred while reading file name from chunk file " + chunkFile.getName());
+        }
+    }
+
+    public String getExtensionFromChunkFile(File chunkFile) {
+        try (FileInputStream fis = new FileInputStream(chunkFile)) {
+
+            long bytesSkipped = fis.skip(CHUNK_HEADER + FILE_NAME_SIZE);
+
+            if(bytesSkipped != CHUNK_HEADER + FILE_NAME_SIZE) throw new RuntimeException("Couldn't skip bytes in file " + chunkFile.getName());
+
+            byte[] extensionBytes = new byte[FILE_EXTENSION_SIZE];
+            int bytesRead = fis.read(extensionBytes);
+
+            if(bytesRead != FILE_EXTENSION_SIZE) throw new RuntimeException("Couldn't read file " + chunkFile.getName());
+
+            return new String(extensionBytes, StandardCharsets.UTF_8).trim();
+        } catch (IOException e) {
+            throw new RuntimeException("Exception occurred while reading file name from chunk file " + chunkFile.getName());
+        }
+    }
+
     private byte[] hexStringToByteArray(String hexString) {
         byte[] byteArray = new byte[hexString.length() / 2];
 

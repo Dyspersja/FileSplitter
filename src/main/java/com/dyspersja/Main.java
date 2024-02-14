@@ -2,6 +2,7 @@ package com.dyspersja;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Main {
@@ -52,5 +53,9 @@ public class Main {
         } while (!lastChunkFile.equals(chunkFileList.get(0)));
 
         int chunkFileListOffset = chunkFilesManager.getChunkFileOrder(chunkFileList.get(0));
+        Collections.rotate(chunkFileList, chunkFileListOffset - 1);
+
+        String fileName = chunkFilesManager.getFileNameFromChunkFile(chunkFileList.get(0));
+        String extension = chunkFilesManager.getExtensionFromChunkFile(chunkFileList.get(0));
     }
 }
