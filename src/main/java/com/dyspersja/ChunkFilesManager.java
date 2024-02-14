@@ -115,10 +115,10 @@ public class ChunkFilesManager {
     public File getNextFileFromChunkFile(File chunkFile) {
         try (FileInputStream fis = new FileInputStream(chunkFile)) {
 
-            byte[] nextChunkFileNameBytes = new byte[16];
+            byte[] nextChunkFileNameBytes = new byte[NEXT_FILE_NAME_SIZE];
             int bytesRead = fis.read(nextChunkFileNameBytes);
 
-            if(bytesRead != 16) throw new RuntimeException("Couldn't read file " + chunkFile.getName());
+            if(bytesRead != NEXT_FILE_NAME_SIZE) throw new RuntimeException("Couldn't read file " + chunkFile.getName());
 
             String nextChunkFileName = byteArrayToHexString(nextChunkFileNameBytes);
 
@@ -131,14 +131,14 @@ public class ChunkFilesManager {
     public int getChunkFileOrder(File chunkFile) {
         try (FileInputStream fis = new FileInputStream(chunkFile)) {
 
-            long bytesSkipped = fis.skip(16);
+            long bytesSkipped = fis.skip(NEXT_FILE_NAME_SIZE);
 
-            if(bytesSkipped != 16) throw new RuntimeException("Couldn't skip bytes in file " + chunkFile.getName());
+            if(bytesSkipped != NEXT_FILE_NAME_SIZE) throw new RuntimeException("Couldn't skip bytes in file " + chunkFile.getName());
 
-            byte[] orderBytes = new byte[4];
+            byte[] orderBytes = new byte[FILE_ORDER_SIZE];
             int bytesRead = fis.read(orderBytes);
 
-            if(bytesRead != 4) throw new RuntimeException("Couldn't read file " + chunkFile.getName());
+            if(bytesRead != FILE_ORDER_SIZE) throw new RuntimeException("Couldn't read file " + chunkFile.getName());
 
             return byteArrayToInt(orderBytes);
         } catch (IOException e) {
