@@ -57,5 +57,10 @@ public class Main {
 
         String fileName = chunkFilesManager.getFileNameFromChunkFile(chunkFileList.get(0));
         String extension = chunkFilesManager.getExtensionFromChunkFile(chunkFileList.get(0));
+        String filePath = chunkFileList.get(0).getParent() + "/" + fileName + (extension.isEmpty() ? "" : "." + extension);
+        File mergedFile = new File(filePath);
+
+        chunkFilesManager.mergeFile(mergedFile, chunkFileList);
+        System.out.println("File " + mergedFile.getName() + " merged successfully");
     }
 }

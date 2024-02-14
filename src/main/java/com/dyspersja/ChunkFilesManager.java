@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.UUID;
 
 public class ChunkFilesManager {
@@ -179,6 +180,30 @@ public class ChunkFilesManager {
             return new String(extensionBytes, StandardCharsets.UTF_8).trim();
         } catch (IOException e) {
             throw new RuntimeException("Exception occurred while reading file name from chunk file " + chunkFile.getName());
+        }
+    }
+
+    public void mergeFile(File mergedFile, List<File> chunkFileList) {
+        try (FileOutputStream fos = new FileOutputStream(mergedFile, false)) {
+            boolean firstFileDone = false;
+            for (File f : chunkFileList) {
+                int bytesToSkip = firstFileDone ? CHUNK_HEADER : FIRST_CHUNK_HEADER;
+
+                try (FileInputStream fis = new FileInputStream(f)) {
+                    long bytesSkipped = fis.skip(bytesToSkip);
+
+                    if(bytesSkipped != bytesToSkip) throw new RuntimeException("Couldn't skip bytes in file " + f.getName());
+
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = fis.read(buffer)) != -1) {
+                        fos.write(buffer, 0, bytesRead);
+                    }
+                }
+                firstFileDone = true;
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Couldn't create and merge file");
         }
     }
 
