@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.UUID;
 
 public class ChunkFilesManager {
@@ -112,6 +113,100 @@ public class ChunkFilesManager {
         }
     }
 
+    public File getNextFileFromChunkFile(File chunkFile) {
+        try (FileInputStream fis = new FileInputStream(chunkFile)) {
+
+            byte[] nextChunkFileNameBytes = new byte[NEXT_FILE_NAME_SIZE];
+            int bytesRead = fis.read(nextChunkFileNameBytes);
+
+            if(bytesRead != NEXT_FILE_NAME_SIZE) throw new RuntimeException("Couldn't read file " + chunkFile.getName());
+
+            String nextChunkFileName = byteArrayToHexString(nextChunkFileNameBytes);
+
+            return new File(chunkFile.getParentFile(), nextChunkFileName);
+        } catch (IOException e) {
+            throw new RuntimeException("Exception occurred while searching for chunk file " + chunkFile.getName());
+        }
+    }
+
+    public int getChunkFileOrder(File chunkFile) {
+        try (FileInputStream fis = new FileInputStream(chunkFile)) {
+
+            long bytesSkipped = fis.skip(NEXT_FILE_NAME_SIZE);
+
+            if(bytesSkipped != NEXT_FILE_NAME_SIZE) throw new RuntimeException("Couldn't skip bytes in file " + chunkFile.getName());
+
+            byte[] orderBytes = new byte[FILE_ORDER_SIZE];
+            int bytesRead = fis.read(orderBytes);
+
+            if(bytesRead != FILE_ORDER_SIZE) throw new RuntimeException("Couldn't read file " + chunkFile.getName());
+
+            return byteArrayToInt(orderBytes);
+        } catch (IOException e) {
+            throw new RuntimeException("Exception occurred while getting order for chunk file " + chunkFile.getName());
+        }
+    }
+
+    public String getFileNameFromChunkFile(File chunkFile) {
+        try (FileInputStream fis = new FileInputStream(chunkFile)) {
+
+            long bytesSkipped = fis.skip(CHUNK_HEADER);
+
+            if(bytesSkipped != CHUNK_HEADER) throw new RuntimeException("Couldn't skip bytes in file " + chunkFile.getName());
+
+            byte[] fileNameBytes = new byte[FILE_NAME_SIZE];
+            int bytesRead = fis.read(fileNameBytes);
+
+            if(bytesRead != FILE_NAME_SIZE) throw new RuntimeException("Couldn't read file " + chunkFile.getName());
+
+            return new String(fileNameBytes, StandardCharsets.UTF_8).trim();
+        } catch (IOException e) {
+            throw new RuntimeException("Exception occurred while reading file name from chunk file " + chunkFile.getName());
+        }
+    }
+
+    public String getExtensionFromChunkFile(File chunkFile) {
+        try (FileInputStream fis = new FileInputStream(chunkFile)) {
+
+            long bytesSkipped = fis.skip(CHUNK_HEADER + FILE_NAME_SIZE);
+
+            if(bytesSkipped != CHUNK_HEADER + FILE_NAME_SIZE) throw new RuntimeException("Couldn't skip bytes in file " + chunkFile.getName());
+
+            byte[] extensionBytes = new byte[FILE_EXTENSION_SIZE];
+            int bytesRead = fis.read(extensionBytes);
+
+            if(bytesRead != FILE_EXTENSION_SIZE) throw new RuntimeException("Couldn't read file " + chunkFile.getName());
+
+            return new String(extensionBytes, StandardCharsets.UTF_8).trim();
+        } catch (IOException e) {
+            throw new RuntimeException("Exception occurred while reading file name from chunk file " + chunkFile.getName());
+        }
+    }
+
+    public void mergeFile(File mergedFile, List<File> chunkFileList) {
+        try (FileOutputStream fos = new FileOutputStream(mergedFile, false)) {
+            boolean firstFileDone = false;
+            for (File f : chunkFileList) {
+                int bytesToSkip = firstFileDone ? CHUNK_HEADER : FIRST_CHUNK_HEADER;
+
+                try (FileInputStream fis = new FileInputStream(f)) {
+                    long bytesSkipped = fis.skip(bytesToSkip);
+
+                    if(bytesSkipped != bytesToSkip) throw new RuntimeException("Couldn't skip bytes in file " + f.getName());
+
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = fis.read(buffer)) != -1) {
+                        fos.write(buffer, 0, bytesRead);
+                    }
+                }
+                firstFileDone = true;
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Couldn't create and merge file");
+        }
+    }
+
     private byte[] hexStringToByteArray(String hexString) {
         byte[] byteArray = new byte[hexString.length() / 2];
 
@@ -120,5 +215,21 @@ public class ChunkFilesManager {
                     + Character.digit(hexString.charAt(i+1), 16));
         }
         return byteArray;
+    }
+
+    private String byteArrayToHexString(byte[] byteArray) {
+        StringBuilder sb = new StringBuilder();
+
+        for (byte b : byteArray) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString().trim();
+    }
+
+    private int byteArrayToInt(byte[] byteArray) {
+        return ((byteArray[0] & 0xFF) << 24) |
+                ((byteArray[1] & 0xFF) << 16) |
+                ((byteArray[2] & 0xFF) << 8) |
+                (byteArray[3] & 0xFF);
     }
 }
