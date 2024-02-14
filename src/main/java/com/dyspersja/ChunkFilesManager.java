@@ -112,6 +112,20 @@ public class ChunkFilesManager {
         }
     }
 
+    public File getNextFileFromChunkFile(File chunkFile) {
+        try (FileInputStream fis = new FileInputStream(chunkFile)) {
+
+            byte[] nextChunkFileNameBytes = new byte[16];
+            int bytesRead = fis.read(nextChunkFileNameBytes, 0, 16);
+
+            String nextChunkFileName = byteArrayToHexString(nextChunkFileNameBytes);
+
+            return new File(chunkFile.getParentFile(), nextChunkFileName);
+        } catch (IOException e) {
+            throw new RuntimeException("Exception occurred while searching for chunk file " + chunkFile.getName());
+        }
+    }
+
     private byte[] hexStringToByteArray(String hexString) {
         byte[] byteArray = new byte[hexString.length() / 2];
 

@@ -1,10 +1,12 @@
 package com.dyspersja;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Main {
 
-    private static final ApplicationMode MODE = ApplicationMode.SPLIT;
+    private static final ApplicationMode MODE = ApplicationMode.MERGE;
 
     public static void main(String[] args) {
         switch (MODE) {
@@ -35,6 +37,20 @@ public class Main {
     }
 
     private static void mergeChunkFiles(String[] args) {
-        throw new RuntimeException("Not Implemented");
+        SourceFileManager sourceFileManager = new SourceFileManager();
+        String chunkFilePath = sourceFileManager.retrieveFilePath(args);
+
+        ChunkFilesManager chunkFilesManager = new ChunkFilesManager();
+
+        List<File> chunkFileList = new ArrayList<>();
+        File lastChunkFile = sourceFileManager.retrieveFileFromFilePath(chunkFilePath);
+
+        do {
+            File nextChunkFile = chunkFilesManager.getNextFileFromChunkFile(lastChunkFile);
+            chunkFileList.add(lastChunkFile);
+            lastChunkFile = nextChunkFile;
+        } while (!lastChunkFile.equals(chunkFileList.get(0)));
+
+        System.out.println(chunkFileList.size());
     }
 }
