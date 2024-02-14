@@ -30,6 +30,10 @@ public class Main {
                 sourceFileManager.retrieveFileExtension(sourceFile.getName())
         );
 
+        for (int i = 0; i < chunkFileNames.length; i++) {
+            chunkFileNames[i] = sourceFile.getParent() + "/" + chunkFileNames[i];
+        }
+
         chunkFilesManager.createChunkFiles(
                 chunkFileNames,
                 chunkFileHeaders,
