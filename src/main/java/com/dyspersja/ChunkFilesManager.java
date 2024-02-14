@@ -121,4 +121,13 @@ public class ChunkFilesManager {
         }
         return byteArray;
     }
+
+    private String byteArrayToHexString(byte[] byteArray) {
+        StringBuilder sb = new StringBuilder();
+
+        for (byte b : byteArray) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString().trim();
+    }
 }
